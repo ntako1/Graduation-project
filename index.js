@@ -1,15 +1,35 @@
-/**
- * @format
- */
+const express = require('express');
+const mysql = require('mysql');
+const cors = require('cors');
 
-import {AppRegistry} from 'react-native';
-import App from './App';
-import {name as appName} from './app.json';
-import messaging from '@react-native-firebase/messaging';
+const app = express();
+app.use(cors());
 
-
-// This handler is required for handling background/terminated state messages
-messaging().setBackgroundMessageHandler(async remoteMessage => {
-    console.log('Message handled in the background!', remoteMessage);
+const db = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'arduino_data'
 });
-AppRegistry.registerComponent(appName, () => App);
+
+db.connect((err) => {
+  if (err) {
+    throw err;
+  }
+  console.log('Connected to database');
+  
+});
+
+app.get('/getdata', (req, res) => {
+  let sql = 'SELECT * FROM info_data ORDER BY updated_at DESC LIMIT 1';
+  db.query(sql, (err, result) => {
+    if (err) throw err;
+    res.send(result);
+   
+  });
+});
+
+app.listen(3000, () => {
+  console.log('Server started on port 3000');
+  
+});
